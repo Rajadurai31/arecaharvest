@@ -1,0 +1,39 @@
+# ===========================
+# ArecaHarvest .gitignore
+# ===========================
+
+# Maven
+backend/target/
+backend/*.jar
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment / Secrets
+*.env
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Spring Boot
+backend/src/main/resources/application-local.properties
+
+# Test output
+backend/target/surefire-reports/

@@ -1,0 +1,62 @@
+version: "3.9"
+
+services:
+  # ─── MySQL Database ───────────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: arecaharvest-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-arecaharvest}
+      MYSQL_USER: ${MYSQL_USER:-arecauser}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-arecapassword}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/src/main/resources/db/migration:/docker-entrypoint-initdb.d
+    networks:
+      - arecaharvest-net
+
+  # ─── Spring Boot Backend ──────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: arecaharvest-backend
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-arecaharvest}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-arecauser}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-arecapassword}
+      JWT_SECRET: ${JWT_SECRET:-changeme_use_a_strong_secret_in_production_min_64_chars_long}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+    ports:
+      - "8080:8080"
+    networks:
+      - arecaharvest-net
+
+  # ─── React Frontend ───────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: arecaharvest-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    networks:
+      - arecaharvest-net
+
+volumes:
+  mysql_data:
+
+networks:
+  arecaharvest-net:
+    driver: bridge
