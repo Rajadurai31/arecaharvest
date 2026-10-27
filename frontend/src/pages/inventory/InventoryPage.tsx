@@ -36,9 +36,15 @@ export default function InventoryPage() {
     <div className="space-y-6">
       <div className="page-header"><h1>Inventory</h1></div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
         <StatCard label="Total Available" value={formatKg(totalAvailable)} icon={Package} color="green" />
         <StatCard label="Inventory Lots" value={paged?.totalElements ?? 0} icon={Package} color="blue" />
+        <StatCard
+          label="Avg Lot Size"
+          value={formatKg(paged?.totalElements ? totalAvailable / paged.totalElements : 0)}
+          icon={Package}
+          color="amber"
+        />
       </div>
 
       <div className="card">

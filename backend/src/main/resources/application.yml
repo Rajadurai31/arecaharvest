@@ -43,6 +43,7 @@ spring:
     time-zone: Asia/Kolkata
     serialization:
       write-dates-as-timestamps: false
+      fail-on-empty-beans: false
     deserialization:
       fail-on-unknown-properties: false
     default-property-inclusion: non_null

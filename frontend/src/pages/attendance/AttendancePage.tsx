@@ -56,7 +56,7 @@ export default function AttendancePage() {
           page, size: 20,
         }),
         workersApi.list({ status: 'ACTIVE', size: 200 }),
-        fieldsApi.list({ status: 'HARVESTING', size: 100 }),
+        fieldsApi.list({ size: 100 }),
         contractsApi.list({ status: 'ACTIVE', size: 100 }),
       ])
       setPaged(data)
@@ -143,7 +143,7 @@ export default function AttendancePage() {
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Mark Attendance">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="label">Worker *</label>
               <select {...register('workerId', { valueAsNumber: true })} className="input">
@@ -170,11 +170,11 @@ export default function AttendancePage() {
               <label className="label">Date *</label>
               <input {...register('attendanceDate')} type="date" className="input" />
             </div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <label className="label">Status *</label>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {(['PRESENT','HALF_DAY','ABSENT','LEAVE'] as const).map(s => (
-                  <label key={s} className="flex items-center gap-2 p-2 rounded-lg border border-gray-200 cursor-pointer hover:border-primary-400 has-[:checked]:border-primary-500 has-[:checked]:bg-primary-50">
+                  <label key={s} className="flex items-center gap-2 p-2 rounded-xl border border-gray-200 dark:border-gray-700 cursor-pointer hover:border-primary-400 has-[:checked]:border-primary-500 has-[:checked]:bg-primary-50 dark:has-[:checked]:bg-primary-950/40">
                     <input {...register('status')} type="radio" value={s} className="text-primary-600" />
                     <span className="text-xs font-medium">{s.replace('_',' ')}</span>
                   </label>

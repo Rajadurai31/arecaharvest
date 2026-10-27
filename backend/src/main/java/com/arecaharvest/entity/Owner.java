@@ -70,6 +70,7 @@ public class Owner extends BaseEntity {
     @Builder.Default
     private boolean active = true;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<Field> fields = new ArrayList<>();

@@ -15,8 +15,8 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
     @Query("""
         SELECT v FROM Vehicle v
-        WHERE (:status IS NULL OR v.status = :status)
-          AND (:type IS NULL OR v.vehicleType = :type)
+        WHERE (:status IS NULL OR CAST(v.status AS string) = :status)
+          AND (:type IS NULL OR CAST(v.vehicleType AS string) = :type)
         """)
     Page<Vehicle> searchVehicles(@Param("status") String status,
                                  @Param("type") String type,

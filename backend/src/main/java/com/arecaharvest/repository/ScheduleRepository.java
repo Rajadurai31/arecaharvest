@@ -19,7 +19,7 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     @Query("""
         SELECT s FROM Schedule s
         WHERE (:fieldId IS NULL OR s.field.id = :fieldId)
-          AND (:status IS NULL OR s.status = :status)
+          AND (:status IS NULL OR CAST(s.status AS string) = :status)
           AND (:fromDate IS NULL OR s.scheduleDate >= :fromDate)
           AND (:toDate IS NULL OR s.scheduleDate <= :toDate)
         ORDER BY s.scheduleDate ASC, s.plannedStartTime ASC

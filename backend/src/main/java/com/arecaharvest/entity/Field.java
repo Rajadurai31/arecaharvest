@@ -63,6 +63,7 @@ public class Field extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @OneToMany(mappedBy = "field", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<HarvestingContract> contracts = new ArrayList<>();

@@ -186,7 +186,7 @@ export default function SalesPage() {
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Record Sale" size="lg">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="label">Sale Number *</label>
               <input {...register('saleNumber')} className="input" placeholder="SAL-2026-001" />

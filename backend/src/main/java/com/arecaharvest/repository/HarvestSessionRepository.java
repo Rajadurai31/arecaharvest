@@ -29,7 +29,7 @@ public interface HarvestSessionRepository extends JpaRepository<HarvestSession, 
         SELECT hs FROM HarvestSession hs
         WHERE (:fieldId IS NULL OR hs.field.id = :fieldId)
           AND (:contractId IS NULL OR hs.contract.id = :contractId)
-          AND (:status IS NULL OR hs.status = :status)
+          AND (:status IS NULL OR CAST(hs.status AS string) = :status)
           AND (:fromDate IS NULL OR hs.sessionDate >= :fromDate)
           AND (:toDate IS NULL OR hs.sessionDate <= :toDate)
         """)

@@ -19,7 +19,7 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
     @Query("""
         SELECT s FROM Sale s
         WHERE (:buyerId IS NULL OR s.buyer.id = :buyerId)
-          AND (:status IS NULL OR s.paymentStatus = :status)
+          AND (:status IS NULL OR CAST(s.paymentStatus AS string) = :status)
           AND (:fromDate IS NULL OR s.saleDate >= :fromDate)
           AND (:toDate IS NULL OR s.saleDate <= :toDate)
         """)

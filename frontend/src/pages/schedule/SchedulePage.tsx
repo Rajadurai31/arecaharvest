@@ -135,7 +135,7 @@ export default function SchedulePage() {
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Schedule Work" size="lg">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="label">Date *</label>
               <input {...register('scheduleDate')} type="date" className="input" />
@@ -166,9 +166,9 @@ export default function SchedulePage() {
               <label className="label">Expected Workers</label>
               <input {...register('expectedWorkerCount')} type="number" className="input" />
             </div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <label className="label">Assign Workers</label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-36 overflow-y-auto border border-gray-200 rounded-lg p-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-36 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-xl p-3">
                 {workers.map(w => (
                   <label key={w.id} className="flex items-center gap-2 text-sm cursor-pointer">
                     <input type="checkbox" checked={selectedWorkers.includes(w.id)} onChange={() => setSelectedWorkers(p => p.includes(w.id) ? p.filter(x => x !== w.id) : [...p, w.id])} className="rounded text-primary-600" />
@@ -177,7 +177,7 @@ export default function SchedulePage() {
                 ))}
               </div>
             </div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <label className="label">Notes</label>
               <textarea {...register('notes')} className="input" rows={2} />
             </div>

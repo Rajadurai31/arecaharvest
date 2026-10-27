@@ -16,7 +16,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     @Query("""
         SELECT i FROM Inventory i
         WHERE (:fieldId IS NULL OR i.field.id = :fieldId)
-          AND (:status IS NULL OR i.status = :status)
+          AND (:status IS NULL OR CAST(i.status AS string) = :status)
         """)
     Page<Inventory> searchInventory(@Param("fieldId") Long fieldId,
                                     @Param("status") String status,

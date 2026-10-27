@@ -16,8 +16,8 @@ public interface EquipmentRepository extends JpaRepository<Equipment, Long> {
 
     @Query("""
         SELECT e FROM Equipment e
-        WHERE (:category IS NULL OR e.category = :category)
-          AND (:status IS NULL OR e.status = :status)
+        WHERE (:category IS NULL OR CAST(e.category AS string) = :category)
+          AND (:status IS NULL OR CAST(e.status AS string) = :status)
         """)
     Page<Equipment> searchEquipment(@Param("category") String category,
                                     @Param("status") String status,

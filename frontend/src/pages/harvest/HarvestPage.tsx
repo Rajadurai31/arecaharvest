@@ -117,7 +117,7 @@ export default function HarvestPage() {
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Record Harvest Session" size="lg">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="label">Date *</label>
               <input {...register('sessionDate')} type="date" className="input" />
@@ -161,19 +161,19 @@ export default function HarvestPage() {
               <label className="label">End Time</label>
               <input {...register('endTime')} type="time" className="input" />
             </div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <label className="label">Workers Present</label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-xl p-3">
                 {workers.map(w => (
                   <label key={w.id} className="flex items-center gap-2 text-sm cursor-pointer">
                     <input type="checkbox" checked={selectedWorkers.includes(w.id)} onChange={() => toggleWorker(w.id)} className="rounded text-primary-600" />
-                    <span className={selectedWorkers.includes(w.id) ? 'font-medium text-gray-900' : 'text-gray-600'}>{w.name}</span>
+                    <span className={selectedWorkers.includes(w.id) ? 'font-medium text-gray-900 dark:text-gray-100' : 'text-gray-600 dark:text-gray-400'}>{w.name}</span>
                   </label>
                 ))}
               </div>
               <p className="text-xs text-gray-500 mt-1">{selectedWorkers.length} workers selected</p>
             </div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <label className="label">Remarks</label>
               <textarea {...register('remarks')} className="input" rows={2} />
             </div>

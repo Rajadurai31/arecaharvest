@@ -13,8 +13,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class LoginRateLimiter {
 
-    private static final int MAX_ATTEMPTS = 5;
-    private static final long LOCKOUT_DURATION_SECONDS = 300; // 5 minutes
+    private static final int MAX_ATTEMPTS = 20;
+    private static final long LOCKOUT_DURATION_SECONDS = 60; // 1 minute
 
     private static class Attempt {
         int count;
