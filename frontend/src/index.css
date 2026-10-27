@@ -56,10 +56,11 @@
 
   /* Glassmorphism */
   .glass-card {
-    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-white/40 dark:border-gray-800/80 shadow-card;
+    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-white/40 dark:border-gray-800/80 shadow-md;
   }
   .glass-dock {
-    @apply bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl border border-gray-200/80 dark:border-gray-800 shadow-dock;
+    @apply bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl border border-gray-200/80 dark:border-gray-800 shadow-2xl;
+    box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.16), 0 4px 12px -2px rgba(0, 0, 0, 0.08);
   }
 
   /* Inputs */
