@@ -38,19 +38,34 @@ public class AuthService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
+    private final com.arecaharvest.config.security.LoginRateLimiter loginRateLimiter;
 
     @Value("${jwt.expiration-ms}")
     private long jwtExpirationMs;
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-        );
+        if (loginRateLimiter.isBlocked(request.getUsername())) {
+            long remaining = loginRateLimiter.getRemainingLockoutSeconds(request.getUsername());
+            throw new BusinessException("Account temporarily locked due to multiple failed login attempts. Please wait " + remaining + " seconds.");
+        }
+
+        Authentication auth;
+        try {
+            auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+            );
+            loginRateLimiter.recordSuccess(request.getUsername());
+        } catch (org.springframework.security.core.AuthenticationException e) {
+            loginRateLimiter.recordFailedAttempt(request.getUsername());
+            throw new BusinessException("Invalid username or password");
+        }
+
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
         String token = jwtUtils.generateToken(userDetails);
+        String refreshToken = jwtUtils.generateRefreshToken(userDetails);
 
         // Update last login
         userRepository.findById(userDetails.getId()).ifPresent(user -> {
@@ -69,6 +84,41 @@ public class AuthService {
                 .email(userDetails.getEmail())
                 .roles(roles)
                 .token(token)
+                .refreshToken(refreshToken)
+                .tokenType("Bearer")
+                .expiresIn(jwtExpirationMs)
+                .build();
+    }
+
+    @Transactional
+    public AuthResponse refreshToken(String refreshToken) {
+        if (!jwtUtils.validateToken(refreshToken)) {
+            throw new BusinessException("Invalid or expired refresh token");
+        }
+        String username = jwtUtils.getUsernameFromToken(refreshToken);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+
+        if (!user.isActive()) {
+            throw new BusinessException("User account is deactivated");
+        }
+
+        UserDetailsImpl userDetails = UserDetailsImpl.build(user);
+        String newToken = jwtUtils.generateToken(userDetails);
+        String newRefreshToken = jwtUtils.generateRefreshToken(userDetails);
+
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        return AuthResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .roles(roles)
+                .token(newToken)
+                .refreshToken(newRefreshToken)
                 .tokenType("Bearer")
                 .expiresIn(jwtExpirationMs)
                 .build();

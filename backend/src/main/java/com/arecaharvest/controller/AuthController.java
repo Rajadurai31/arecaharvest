@@ -36,6 +36,20 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(response, "Login successful"));
     }
 
+    @Operation(summary = "Refresh access token using a valid refresh token")
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(
+            @Valid @RequestBody RefreshTokenRequest request) {
+        AuthResponse response = authService.refreshToken(request.getRefreshToken());
+        return ResponseEntity.ok(ApiResponse.success(response, "Token refreshed successfully"));
+    }
+
+    @lombok.Getter @lombok.Setter
+    public static class RefreshTokenRequest {
+        @jakarta.validation.constraints.NotBlank(message = "Refresh token is required")
+        private String refreshToken;
+    }
+
     @Operation(summary = "Register a new user (Admin only)")
     @PostMapping("/register")
     @PreAuthorize("hasRole('ADMIN')")

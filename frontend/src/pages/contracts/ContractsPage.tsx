@@ -61,7 +61,25 @@ export default function ContractsPage() {
 
   const openCreate = () => {
     setEditing(null)
-    reset({ contractType: 'PER_KG', status: 'DRAFT', startDate: new Date().toISOString().split('T')[0] })
+    reset({ contractType: 'PER_KG', status: 'DRAFT', startDate: new Date().toISOString().split('T')[0], rate: 0 })
+    setModalOpen(true)
+  }
+
+  const openEdit = (c: Contract) => {
+    setEditing(c)
+    reset({
+      ownerId: c.ownerId,
+      fieldId: c.fieldId,
+      contractNumber: c.contractNumber,
+      contractType: c.contractType,
+      rate: c.rate ?? 0,
+      fixedAmount: c.fixedAmount ?? undefined,
+      expectedQuantityKg: c.expectedQuantityKg ?? undefined,
+      startDate: c.startDate,
+      expectedEndDate: c.expectedEndDate ?? '',
+      status: c.status,
+      notes: c.notes ?? '',
+    })
     setModalOpen(true)
   }
 
@@ -139,7 +157,7 @@ export default function ContractsPage() {
                       <td className="table-td text-right">
                         <div className="flex items-center justify-end gap-1">
                           {c.status === 'DRAFT' && <button className="btn btn-secondary btn-sm px-2" onClick={() => activate(c)} title="Activate"><CheckCircle className="h-3.5 w-3.5 text-green-600" /></button>}
-                          <button className="btn btn-secondary btn-sm px-2" onClick={() => { setEditing(c); setModalOpen(true) }}><Edit2 className="h-3.5 w-3.5" /></button>
+                          <button className="btn btn-secondary btn-sm px-2" onClick={() => openEdit(c)} title="Edit Contract"><Edit2 className="h-3.5 w-3.5" /></button>
                         </div>
                       </td>
                     </tr>

@@ -25,8 +25,7 @@ public class ContractRequest {
     @NotNull(message = "Contract type is required")
     private ContractType contractType;
 
-    @NotNull(message = "Rate is required")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Rate must be positive")
+    @DecimalMin(value = "0.0", message = "Rate cannot be negative")
     private BigDecimal rate;
 
     /** Required only when contractType = FIXED_AMOUNT */

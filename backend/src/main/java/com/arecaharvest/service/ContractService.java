@@ -5,6 +5,7 @@ import com.arecaharvest.dto.response.ContractResponse;
 import com.arecaharvest.dto.response.PagedResponse;
 import com.arecaharvest.entity.*;
 import com.arecaharvest.entity.enums.ContractStatus;
+import com.arecaharvest.entity.enums.ContractType;
 import com.arecaharvest.exception.BusinessException;
 import com.arecaharvest.exception.DuplicateResourceException;
 import com.arecaharvest.exception.ResourceNotFoundException;
@@ -54,6 +55,7 @@ public class ContractService {
             throw new DuplicateResourceException("Contract", "contractNumber", request.getContractNumber());
         }
         validateDates(request.getStartDate(), request.getExpectedEndDate());
+        validateRates(request);
 
         Owner owner = ownerRepository.findById(request.getOwnerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Owner", "id", request.getOwnerId()));
@@ -93,6 +95,7 @@ public class ContractService {
             throw new BusinessException("Cannot modify a " + contract.getStatus() + " contract");
         }
         validateDates(request.getStartDate(), request.getExpectedEndDate());
+        validateRates(request);
 
         contract.setContractType(request.getContractType());
         contract.setRate(request.getRate());
@@ -128,6 +131,21 @@ public class ContractService {
         if (start == null) throw new BusinessException("Start date is required");
         if (end != null && end.isBefore(start)) {
             throw new BusinessException("Expected end date cannot be before start date");
+        }
+    }
+
+    private void validateRates(ContractRequest request) {
+        if (request.getContractType() == ContractType.FIXED_AMOUNT) {
+            if (request.getFixedAmount() == null || request.getFixedAmount().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new BusinessException("Fixed amount is required and must be positive for FIXED_AMOUNT contract");
+            }
+            if (request.getRate() == null) {
+                request.setRate(BigDecimal.ZERO);
+            }
+        } else {
+            if (request.getRate() == null || request.getRate().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new BusinessException("Rate is required and must be positive for " + request.getContractType() + " contract");
+            }
         }
     }
 

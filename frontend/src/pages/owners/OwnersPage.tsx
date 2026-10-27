@@ -65,10 +65,10 @@ export default function OwnersPage() {
     setSaving(true)
     try {
       if (editing) {
-        await ownersApi.update(editing.id, data)
+        await ownersApi.update(editing.id, data as Partial<Owner>)
         toast.success('Owner updated')
       } else {
-        await ownersApi.create(data)
+        await ownersApi.create(data as Partial<Owner>)
         toast.success('Owner created')
       }
       setModalOpen(false)

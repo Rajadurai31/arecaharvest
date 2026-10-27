@@ -36,6 +36,15 @@ export default function SalesPage() {
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [payModal, setPayModal] = useState<Sale | null>(null)
+  const [paying, setPaying] = useState(false)
+  const [payData, setPayData] = useState({
+    amount: '',
+    paymentDate: new Date().toISOString().split('T')[0],
+    paymentMethod: 'UPI',
+    referenceNumber: '',
+    remarks: '',
+  })
 
   const { register, handleSubmit, reset, watch } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -72,6 +81,38 @@ export default function SalesPage() {
     } finally { setSaving(false) }
   }
 
+  const openPayModal = (s: Sale) => {
+    setPayModal(s)
+    setPayData({
+      amount: String(s.outstanding > 0 ? s.outstanding : s.netAmount),
+      paymentDate: new Date().toISOString().split('T')[0],
+      paymentMethod: 'UPI',
+      referenceNumber: '',
+      remarks: `Payment against ${s.saleNumber}`,
+    })
+  }
+
+  const onRecordPayment = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!payModal) return
+    setPaying(true)
+    try {
+      await salesApi.recordPayment({
+        buyerId: payModal.buyerId,
+        saleId: payModal.id,
+        paymentDate: payData.paymentDate,
+        transactionType: 'PAYMENT',
+        amount: Number(payData.amount),
+        paymentMethod: payData.paymentMethod,
+        referenceNumber: payData.referenceNumber || undefined,
+        remarks: payData.remarks || undefined,
+      })
+      toast.success('Buyer payment recorded successfully')
+      setPayModal(null)
+      load()
+    } finally { setPaying(false) }
+  }
+
   return (
     <div>
       <div className="page-header">
@@ -105,6 +146,7 @@ export default function SalesPage() {
                   <th className="table-th hidden sm:table-cell">Received</th>
                   <th className="table-th">Outstanding</th>
                   <th className="table-th">Status</th>
+                  <th className="table-th text-right">Actions</th>
                 </tr></thead>
                 <tbody className="divide-y divide-gray-50">
                   {paged.content.map(s => (
@@ -118,6 +160,20 @@ export default function SalesPage() {
                       <td className="table-td hidden sm:table-cell text-green-700">{formatCurrency(s.amountReceived)}</td>
                       <td className="table-td text-red-600 font-medium">{s.outstanding > 0 ? formatCurrency(s.outstanding) : '—'}</td>
                       <td className="table-td"><span className={saleStatusColor[s.paymentStatus]}>{s.paymentStatus}</span></td>
+                      <td className="table-td text-right">
+                        {s.paymentStatus !== 'PAID' ? (
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-sm px-2 text-xs font-medium text-primary-700 hover:bg-primary-50"
+                            onClick={() => openPayModal(s)}
+                            title="Record payment from buyer"
+                          >
+                            Pay
+                          </button>
+                        ) : (
+                          <span className="text-xs text-green-600 font-medium">Settled</span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -191,6 +247,85 @@ export default function SalesPage() {
             <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving…' : 'Record Sale'}</button>
           </div>
         </form>
+      </Modal>
+
+      {/* Record Buyer Payment Modal */}
+      <Modal open={!!payModal} onClose={() => setPayModal(null)} title={`Record Payment — ${payModal?.saleNumber}`}>
+        {payModal && (
+          <form onSubmit={onRecordPayment} className="space-y-4">
+            <div className="bg-gray-50 rounded-lg p-3 text-xs space-y-1">
+              <div className="flex justify-between text-gray-600"><span>Buyer:</span><span className="font-semibold text-gray-800">{payModal.buyerName}</span></div>
+              <div className="flex justify-between text-gray-600"><span>Net Sale Amount:</span><span>{formatCurrency(payModal.netAmount)}</span></div>
+              <div className="flex justify-between text-gray-600"><span>Already Received:</span><span className="text-green-700">{formatCurrency(payModal.amountReceived)}</span></div>
+              <div className="flex justify-between text-red-700 font-semibold pt-1 border-t border-gray-200">
+                <span>Remaining Outstanding:</span><span>{formatCurrency(payModal.outstanding)}</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="label">Payment Date *</label>
+                <input
+                  type="date"
+                  className="input"
+                  value={payData.paymentDate}
+                  onChange={e => setPayData({ ...payData, paymentDate: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="label">Amount (₹) *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  className="input"
+                  value={payData.amount}
+                  onChange={e => setPayData({ ...payData, amount: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="label">Payment Method *</label>
+                <select
+                  className="input"
+                  value={payData.paymentMethod}
+                  onChange={e => setPayData({ ...payData, paymentMethod: e.target.value })}
+                >
+                  <option value="UPI">UPI</option>
+                  <option value="BANK_TRANSFER">Bank Transfer</option>
+                  <option value="CASH">Cash</option>
+                  <option value="CHEQUE">Cheque</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="label">Reference Number</label>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="Txn ID / Cheque #"
+                  value={payData.referenceNumber}
+                  onChange={e => setPayData({ ...payData, referenceNumber: e.target.value })}
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="label">Remarks</label>
+                <input
+                  type="text"
+                  className="input"
+                  value={payData.remarks}
+                  onChange={e => setPayData({ ...payData, remarks: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
+              <button type="button" className="btn btn-secondary" onClick={() => setPayModal(null)}>Cancel</button>
+              <button type="submit" className="btn btn-primary" disabled={paying}>{paying ? 'Saving…' : 'Record Payment'}</button>
+            </div>
+          </form>
+        )}
       </Modal>
     </div>
   )

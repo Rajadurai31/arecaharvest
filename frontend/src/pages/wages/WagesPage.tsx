@@ -33,11 +33,22 @@ export default function WagesPage() {
   const [workerFilter, setWorkerFilter] = useState('')
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
+  const [adjModalOpen, setAdjModalOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [adjSaving, setAdjSaving] = useState(false)
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { paymentDate: todayISO(), paymentType: 'PAYMENT', paymentMethod: 'CASH' },
+  })
+
+  const [adjData, setAdjData] = useState({
+    workerId: '',
+    transactionType: 'BONUS',
+    amount: '',
+    adjustmentSign: 1,
+    transactionDate: todayISO(),
+    description: '',
   })
 
   const load = useCallback(async () => {
@@ -65,6 +76,36 @@ export default function WagesPage() {
     } finally { setSaving(false) }
   }
 
+  const onAdjustmentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!adjData.workerId || !adjData.amount) {
+      toast.error('Worker and amount are required')
+      return
+    }
+    setAdjSaving(true)
+    try {
+      await wagesApi.addAdjustment({
+        workerId: Number(adjData.workerId),
+        transactionType: adjData.transactionType,
+        amount: Number(adjData.amount),
+        adjustmentSign: Number(adjData.adjustmentSign),
+        transactionDate: adjData.transactionDate,
+        description: adjData.description || undefined,
+      })
+      toast.success('Wage bonus / adjustment recorded')
+      setAdjModalOpen(false)
+      setAdjData({
+        workerId: '',
+        transactionType: 'BONUS',
+        amount: '',
+        adjustmentSign: 1,
+        transactionDate: todayISO(),
+        description: '',
+      })
+      load()
+    } finally { setAdjSaving(false) }
+  }
+
   return (
     <div>
       <div className="page-header">
@@ -72,9 +113,14 @@ export default function WagesPage() {
           <h1>Wages & Payments</h1>
           <p className="text-sm text-gray-500 mt-0.5">Worker payment history and outstanding balances</p>
         </div>
-        <button className="btn-primary btn" onClick={() => setModalOpen(true)}>
-          <Plus className="h-4 w-4" /> Record Payment
-        </button>
+        <div className="flex gap-2">
+          <button className="btn-secondary btn" onClick={() => setAdjModalOpen(true)}>
+            <Plus className="h-4 w-4" /> Add Bonus / Adjustment
+          </button>
+          <button className="btn-primary btn" onClick={() => setModalOpen(true)}>
+            <Plus className="h-4 w-4" /> Record Payment
+          </button>
+        </div>
       </div>
 
       {/* Quick outstanding — click worker to see ledger */}
@@ -185,6 +231,88 @@ export default function WagesPage() {
           <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
             <button type="button" className="btn btn-secondary" onClick={() => setModalOpen(false)}>Cancel</button>
             <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving…' : 'Record Payment'}</button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Bonus / Adjustment Modal */}
+      <Modal open={adjModalOpen} onClose={() => setAdjModalOpen(false)} title="Record Bonus / Adjustment">
+        <form onSubmit={onAdjustmentSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className="label">Worker *</label>
+              <select
+                className="input"
+                value={adjData.workerId}
+                onChange={e => setAdjData({ ...adjData, workerId: e.target.value })}
+                required
+              >
+                <option value="">Select worker…</option>
+                {workers.map(w => <option key={w.id} value={w.id}>{w.name} ({w.skillType})</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="label">Transaction Type *</label>
+              <select
+                className="input"
+                value={adjData.transactionType}
+                onChange={e => setAdjData({ ...adjData, transactionType: e.target.value })}
+              >
+                <option value="BONUS">BONUS (Increases wage payable)</option>
+                <option value="ADJUSTMENT">ADJUSTMENT (Manual correction)</option>
+              </select>
+            </div>
+            <div>
+              <label className="label">Adjustment Effect *</label>
+              <select
+                className="input"
+                value={adjData.adjustmentSign}
+                onChange={e => setAdjData({ ...adjData, adjustmentSign: Number(e.target.value) })}
+              >
+                <option value={1}>+ Add to balance (Owed to worker)</option>
+                <option value={-1}>− Deduct from balance (Recovery/Penalty)</option>
+              </select>
+            </div>
+            <div>
+              <label className="label">Amount (₹) *</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0.01"
+                className="input"
+                placeholder="500.00"
+                value={adjData.amount}
+                onChange={e => setAdjData({ ...adjData, amount: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <label className="label">Date *</label>
+              <input
+                type="date"
+                className="input"
+                value={adjData.transactionDate}
+                onChange={e => setAdjData({ ...adjData, transactionDate: e.target.value })}
+                required
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="label">Reason / Description</label>
+              <input
+                type="text"
+                className="input"
+                placeholder="e.g. Festival bonus / Equipment reimbursement / Fuel allowance"
+                value={adjData.description}
+                onChange={e => setAdjData({ ...adjData, description: e.target.value })}
+              />
+            </div>
+          </div>
+          <p className="text-xs text-blue-700 bg-blue-50 rounded-lg p-3">
+            ℹ️ This posts directly to the worker's Wage Ledger without changing attendance history.
+          </p>
+          <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
+            <button type="button" className="btn btn-secondary" onClick={() => setAdjModalOpen(false)}>Cancel</button>
+            <button type="submit" className="btn btn-primary" disabled={adjSaving}>{adjSaving ? 'Saving…' : 'Record Entry'}</button>
           </div>
         </form>
       </Modal>

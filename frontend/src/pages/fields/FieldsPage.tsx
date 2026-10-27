@@ -69,7 +69,7 @@ export default function FieldsPage() {
   const onSubmit = async (data: FormData) => {
     setSaving(true)
     try {
-      if (editing) { await fieldsApi.update(editing.id, data); toast.success('Field updated') }
+      if (editing) { await fieldsApi.update(editing.id, data as Partial<Field>); toast.success('Field updated') }
       else { await fieldsApi.create(data as Partial<Field>); toast.success('Field created') }
       setModalOpen(false); load()
     } finally { setSaving(false) }

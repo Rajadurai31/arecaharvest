@@ -1,20 +1,21 @@
 import { useState } from 'react'
-import { dashboardApi, expensesApi, wagesApi, workersApi } from '@/api'
-import { formatCurrency, formatKg, monthStartISO, todayISO } from '@/utils'
+import { dashboardApi } from '@/api'
+import api from '@/api/axios'
+import { formatCurrency, monthStartISO, todayISO } from '@/utils'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, PieChart, Pie, Cell, Legend,
+  ResponsiveContainer, Legend,
 } from 'recharts'
-import { FileText } from 'lucide-react'
-
-const COLORS = ['#16a34a', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6', '#ec4899']
+import { FileText, Download, FileSpreadsheet, File } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 export default function ReportsPage() {
   const [fromDate, setFromDate] = useState(monthStartISO())
   const [toDate, setToDate] = useState(todayISO())
   const [report, setReport] = useState<any>(null)
   const [loading, setLoading] = useState(false)
+  const [downloading, setDownloading] = useState<string | null>(null)
 
   const generate = async () => {
     setLoading(true)
@@ -26,6 +27,30 @@ export default function ReportsPage() {
       ])
       setReport({ rev, harvest, wages })
     } finally { setLoading(false) }
+  }
+
+  const downloadExport = async (endpoint: string, filename: string, key: string) => {
+    setDownloading(key)
+    try {
+      const res = await api.get(endpoint, {
+        params: { fromDate, toDate },
+        responseType: 'blob',
+      })
+      const blob = new Blob([res.data])
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+      toast.success(`${filename} downloaded`)
+    } catch {
+      toast.error(`Failed to download ${filename}`)
+    } finally {
+      setDownloading(null)
+    }
   }
 
   const revData = report ? Object.entries(report.rev).map(([month, vals]: any) => ({
@@ -42,9 +67,9 @@ export default function ReportsPage() {
         <div><h1>Reports</h1><p className="text-sm text-gray-500 mt-0.5">Business analytics and financial overview</p></div>
       </div>
 
-      {/* Date range */}
+      {/* Date range & Export Downloads */}
       <div className="card">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Report Period</h3>
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">Report Period & Generation</h3>
         <div className="flex flex-wrap items-end gap-4">
           <div>
             <label className="label">From</label>
@@ -56,8 +81,143 @@ export default function ReportsPage() {
           </div>
           <button className="btn-primary btn" onClick={generate} disabled={loading}>
             <FileText className="h-4 w-4" />
-            {loading ? 'Generating…' : 'Generate Report'}
+            {loading ? 'Generating…' : 'Generate Preview'}
           </button>
+        </div>
+      </div>
+
+      {/* Export Download Center */}
+      <div className="card">
+        <div className="flex items-center gap-2 mb-4">
+          <Download className="h-4 w-4 text-primary-600" />
+          <h3 className="text-sm font-semibold text-gray-700">Official Export Center</h3>
+          <span className="text-xs text-gray-400">Download formatted reports for accounting & records</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* P&L / Profit */}
+          <div className="p-4 rounded-xl border border-gray-200 bg-white hover:border-primary-400 transition-colors flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="badge badge-green text-xs">P&L</span>
+                <h4 className="font-semibold text-sm text-gray-800">Profit & Loss</h4>
+              </div>
+              <p className="text-xs text-gray-500 mb-4">Monthly revenue, operational expenses, and net profit margins</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm flex-1 text-xs"
+                disabled={downloading === 'profit-pdf'}
+                onClick={() => downloadExport('/reports/profit/export/pdf', `profit-${fromDate}-to-${toDate}.pdf`, 'profit-pdf')}
+              >
+                <File className="h-3 w-3 text-red-600" />
+                {downloading === 'profit-pdf' ? '…' : 'PDF'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm flex-1 text-xs"
+                disabled={downloading === 'profit-csv'}
+                onClick={() => downloadExport('/reports/profit/export/csv', `profit-${fromDate}-to-${toDate}.csv`, 'profit-csv')}
+              >
+                <FileSpreadsheet className="h-3 w-3 text-blue-600" />
+                {downloading === 'profit-csv' ? '…' : 'CSV'}
+              </button>
+            </div>
+          </div>
+
+          {/* Worker Wages */}
+          <div className="p-4 rounded-xl border border-gray-200 bg-white hover:border-primary-400 transition-colors flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="badge badge-amber text-xs">Labour</span>
+                <h4 className="font-semibold text-sm text-gray-800">Worker Wages</h4>
+              </div>
+              <p className="text-xs text-gray-500 mb-4">Attendance days, overtime, wage accruals, paid & balance</p>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm flex-1 text-xs px-2"
+                disabled={downloading === 'wages-pdf'}
+                onClick={() => downloadExport('/reports/worker-wages/export/pdf', `wages-${fromDate}-to-${toDate}.pdf`, 'wages-pdf')}
+              >
+                <File className="h-3 w-3 text-red-600" />
+                {downloading === 'wages-pdf' ? '…' : 'PDF'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm flex-1 text-xs px-2"
+                disabled={downloading === 'wages-excel'}
+                onClick={() => downloadExport('/reports/worker-wages/export/excel', `wages-${fromDate}-to-${toDate}.xlsx`, 'wages-excel')}
+              >
+                <FileSpreadsheet className="h-3 w-3 text-green-600" />
+                {downloading === 'wages-excel' ? '…' : 'Excel'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm flex-1 text-xs px-2"
+                disabled={downloading === 'wages-csv'}
+                onClick={() => downloadExport('/reports/worker-wages/export/csv', `wages-${fromDate}-to-${toDate}.csv`, 'wages-csv')}
+              >
+                <FileSpreadsheet className="h-3 w-3 text-blue-600" />
+                {downloading === 'wages-csv' ? '…' : 'CSV'}
+              </button>
+            </div>
+          </div>
+
+          {/* Sales Report */}
+          <div className="p-4 rounded-xl border border-gray-200 bg-white hover:border-primary-400 transition-colors flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="badge badge-blue text-xs">Sales</span>
+                <h4 className="font-semibold text-sm text-gray-800">Sales Report</h4>
+              </div>
+              <p className="text-xs text-gray-500 mb-4">Buyer orders, quantities sold, rates, deductions & received</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm flex-1 text-xs"
+                disabled={downloading === 'sales-excel'}
+                onClick={() => downloadExport('/reports/sales/export/excel', `sales-${fromDate}-to-${toDate}.xlsx`, 'sales-excel')}
+              >
+                <FileSpreadsheet className="h-3 w-3 text-green-600" />
+                {downloading === 'sales-excel' ? '…' : 'Excel'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm flex-1 text-xs"
+                disabled={downloading === 'sales-csv'}
+                onClick={() => downloadExport('/reports/sales/export/csv', `sales-${fromDate}-to-${toDate}.csv`, 'sales-csv')}
+              >
+                <FileSpreadsheet className="h-3 w-3 text-blue-600" />
+                {downloading === 'sales-csv' ? '…' : 'CSV'}
+              </button>
+            </div>
+          </div>
+
+          {/* Expense Report */}
+          <div className="p-4 rounded-xl border border-gray-200 bg-white hover:border-primary-400 transition-colors flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="badge badge-red text-xs">Expenses</span>
+                <h4 className="font-semibold text-sm text-gray-800">Expenses Report</h4>
+              </div>
+              <p className="text-xs text-gray-500 mb-4">Category breakdown, payments, equipment, fuel & logistics</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm w-full text-xs"
+                disabled={downloading === 'expenses-csv'}
+                onClick={() => downloadExport('/reports/expenses/export/csv', `expenses-${fromDate}-to-${toDate}.csv`, 'expenses-csv')}
+              >
+                <FileSpreadsheet className="h-3 w-3 text-blue-600" />
+                {downloading === 'expenses-csv' ? '…' : 'Download CSV'}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

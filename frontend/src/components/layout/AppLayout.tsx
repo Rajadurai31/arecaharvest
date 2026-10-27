@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import TopBar from './TopBar'
+import BottomNav from './BottomNav'
 import { cn } from '@/utils'
 
 export default function AppLayout() {
@@ -37,10 +38,13 @@ export default function AppLayout() {
           }}
           sidebarCollapsed={collapsed}
         />
-        <main className="flex-1 p-4 md:p-6">
+        <main className="flex-1 p-4 md:p-6 pb-20 lg:pb-6">
           <Outlet />
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <BottomNav onMenuClick={() => setMobileOpen(true)} />
     </div>
   )
 }

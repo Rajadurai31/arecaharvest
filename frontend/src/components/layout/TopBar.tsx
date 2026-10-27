@@ -23,6 +23,7 @@ export default function TopBar({ onMenuClick, sidebarCollapsed }: Props) {
   const { user } = useAuth()
   const location = useLocation()
   const [unread, setUnread] = useState(0)
+  const [dark, setDark] = useState(() => localStorage.getItem('theme') === 'dark')
 
   const title = breadcrumbMap[location.pathname] ?? 'ArecaHarvest'
 
@@ -30,8 +31,18 @@ export default function TopBar({ onMenuClick, sidebarCollapsed }: Props) {
     notificationsApi.getUnreadCount().then(setUnread).catch(() => {})
   }, [location.pathname])
 
+  useEffect(() => {
+    if (dark) {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('theme', 'dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('theme', 'light')
+    }
+  }, [dark])
+
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-4 bg-white border-b border-gray-200 px-4">
+    <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-4 bg-white border-b border-gray-200 px-4 transition-colors">
       <div className="flex items-center gap-3">
         {/* Mobile menu toggle */}
         <button
@@ -51,6 +62,20 @@ export default function TopBar({ onMenuClick, sidebarCollapsed }: Props) {
       </div>
 
       <div className="flex items-center gap-2">
+        {/* Dark mode toggle */}
+        <button
+          type="button"
+          onClick={() => setDark(d => !d)}
+          className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+          title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {dark ? (
+            <span className="text-base">☀️</span>
+          ) : (
+            <span className="text-base">🌙</span>
+          )}
+        </button>
+
         <Link
           to="/notifications"
           className="relative p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700"

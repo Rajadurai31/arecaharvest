@@ -12,13 +12,21 @@ import { Wrench } from 'lucide-react'
 
 const CATEGORIES = ['LADDER','ROPE','CUTTER','HARVESTING_MACHINE','BAGS','SAFETY_EQUIPMENT','TARPAULIN','OTHER']
 
+interface EquipmentForm {
+  name: string
+  category: string
+  quantity: number
+  purchaseDate?: string
+  purchaseCost?: number
+}
+
 export default function EquipmentPage() {
   const [paged, setPaged] = useState<PagedResponse<any> | null>(null)
   const [page, setPage] = useState(0)
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
   const [saving, setSaving] = useState(false)
-  const { register, handleSubmit, reset } = useForm({ defaultValues: { quantity: 1, category: 'LADDER' } })
+  const { register, handleSubmit, reset } = useForm<EquipmentForm>({ defaultValues: { quantity: 1, category: 'LADDER' } })
 
   const load = async () => {
     setLoading(true)

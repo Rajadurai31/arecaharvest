@@ -12,6 +12,8 @@ const unwrap = <T>(res: { data: ApiResponse<T> }) => res.data.data
 export const authApi = {
   login: (username: string, password: string) =>
     api.post<ApiResponse<AuthResponse>>('/auth/login', { username, password }).then(unwrap),
+  refreshToken: (refreshToken: string) =>
+    api.post<ApiResponse<AuthResponse>>('/auth/refresh', { refreshToken }).then(unwrap),
   me: () => api.get<ApiResponse<unknown>>('/auth/me').then(unwrap),
 }
 
@@ -24,6 +26,12 @@ export const dashboardApi = {
     api.get<ApiResponse<Record<string, Record<string, number>>>>('/dashboard/revenue-vs-expenses', { params: { fromDate, toDate } }).then(unwrap),
   getWageTrend: (fromDate: string, toDate: string) =>
     api.get<ApiResponse<Record<string, number>>>('/dashboard/wage-trend', { params: { fromDate, toDate } }).then(unwrap),
+  getFieldWiseHarvest: (fromDate: string, toDate: string) =>
+    api.get<ApiResponse<Record<string, number>>>('/dashboard/field-wise-harvest', { params: { fromDate, toDate } }).then(unwrap),
+  getSalesByBuyer: (fromDate: string, toDate: string) =>
+    api.get<ApiResponse<Record<string, number>>>('/dashboard/sales-by-buyer', { params: { fromDate, toDate } }).then(unwrap),
+  getPendingPayments: () =>
+    api.get<ApiResponse<{ workerOutstanding?: number; buyerOutstanding?: number }>>('/dashboard/pending-payments').then(unwrap),
 }
 
 // ── Owners ────────────────────────────────────────────────────────────────────
@@ -100,6 +108,8 @@ export const wagesApi = {
     api.post<ApiResponse<WorkerPayment>>('/wages/payments', data).then(unwrap),
   listPayments: (params?: Record<string, unknown>) =>
     api.get<ApiResponse<PagedResponse<WorkerPayment>>>('/wages/payments', { params }).then(unwrap),
+  addAdjustment: (data: unknown) =>
+    api.post<ApiResponse<any>>('/wages/adjustment', data).then(unwrap),
 }
 
 // ── Harvest Sessions ──────────────────────────────────────────────────────────

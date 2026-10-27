@@ -21,6 +21,9 @@ public class JwtUtils {
     @Value("${jwt.expiration-ms}")
     private long jwtExpirationMs;
 
+    @Value("${jwt.refresh-expiration-ms:604800000}")
+    private long jwtRefreshExpirationMs;
+
     private SecretKey key() {
         // If the secret is shorter than 64 chars, pad with zeros for HS512 compatibility.
         // In production, always use a proper 64+ character random secret.
@@ -40,6 +43,17 @@ public class JwtUtils {
                 .claim("fullName", userDetails.getFullName())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+                .signWith(key(), Jwts.SIG.HS512)
+                .compact();
+    }
+
+    public String generateRefreshToken(UserDetailsImpl userDetails) {
+        return Jwts.builder()
+                .subject(userDetails.getUsername())
+                .claim("userId", userDetails.getId())
+                .claim("type", "refresh")
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + jwtRefreshExpirationMs))
                 .signWith(key(), Jwts.SIG.HS512)
                 .compact();
     }
