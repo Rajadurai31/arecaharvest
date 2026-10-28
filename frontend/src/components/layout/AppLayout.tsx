@@ -16,9 +16,9 @@ export default function AppLayout() {
   }, [location.pathname])
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 flex flex-col selection:bg-primary-500 selection:text-white">
-      {/* Desktop sidebar */}
-      <div className="hidden lg:block">
+    <div className="min-h-screen bg-slate-50/70 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col selection:bg-primary-500 selection:text-white">
+      {/* Desktop sidebar - fixed to viewport left */}
+      <div className="hidden lg:block fixed inset-y-0 left-0 z-40">
         <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} />
       </div>
 
@@ -26,7 +26,7 @@ export default function AppLayout() {
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden flex">
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity animate-fade-in"
+            className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity animate-fade-in"
             onClick={() => setMobileOpen(false)}
             aria-hidden="true"
           />
@@ -36,10 +36,10 @@ export default function AppLayout() {
         </div>
       )}
 
-      {/* Main Content Area */}
+      {/* Main Content Area - dynamically adjusts to desktop sidebar state & width */}
       <div className={cn(
         'transition-all duration-300 min-h-screen flex flex-col flex-1',
-        collapsed ? 'lg:pl-16' : 'lg:pl-60',
+        collapsed ? 'lg:pl-20' : 'lg:pl-64',
       )}>
         <TopBar
           onMenuClick={() => {
@@ -49,7 +49,7 @@ export default function AppLayout() {
           sidebarCollapsed={collapsed}
         />
         <main className="flex-1 p-3.5 sm:p-5 md:p-6 lg:p-8 safe-bottom-padding">
-          <div className="max-w-7xl mx-auto w-full">
+          <div className="w-full max-w-[1720px] mx-auto space-y-6">
             <Outlet />
           </div>
         </main>
@@ -60,4 +60,3 @@ export default function AppLayout() {
     </div>
   )
 }
-

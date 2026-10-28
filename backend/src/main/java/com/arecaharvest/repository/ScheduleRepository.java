@@ -34,7 +34,7 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     @Query("""
         SELECT COUNT(sw.id) > 0 FROM Schedule s JOIN s.workers sw
         WHERE sw.id = :workerId AND s.scheduleDate = :date
-          AND s.status NOT IN ('CANCELLED','COMPLETED')
+          AND CAST(s.status AS string) NOT IN ('CANCELLED','COMPLETED')
           AND (:excludeId IS NULL OR s.id != :excludeId)
         """)
     boolean hasWorkerConflict(@Param("workerId") Long workerId,

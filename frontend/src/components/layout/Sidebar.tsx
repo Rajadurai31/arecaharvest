@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Users, MapPin, FileText, UserCheck, ClipboardList,
   Wallet, Leaf, Package, ShoppingCart, Receipt, Truck, Wrench,
-  Calendar, BarChart2, Bell, LogOut, ChevronLeft, X,
+  Calendar, BarChart2, Bell, LogOut, ChevronLeft, ChevronRight, X,
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { cn } from '@/utils'
@@ -52,23 +52,27 @@ export default function Sidebar({ collapsed, onToggle, onClose }: Props) {
 
   return (
     <aside className={cn(
-      'h-full flex flex-col bg-gradient-to-b from-gray-950 via-slate-900 to-gray-950 text-white transition-all duration-300 border-r border-gray-800/80 select-none',
-      collapsed ? 'w-16' : 'w-60',
+      'h-screen flex flex-col bg-slate-950/95 backdrop-blur-2xl text-white transition-all duration-300 border-r border-slate-800/80 select-none shadow-2xl',
+      collapsed ? 'w-20' : 'w-64',
     )}>
       {/* Header / Brand */}
-      <div className="flex h-16 items-center justify-between px-4 border-b border-gray-800/80">
+      <div className="flex h-16 items-center justify-between px-4 border-b border-slate-800/80 shrink-0">
         {!collapsed ? (
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 shadow-glow">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 via-primary-600 to-primary-700 shadow-lg shadow-emerald-900/30 ring-1 ring-white/20">
               <Leaf className="h-5 w-5 text-white" />
             </div>
             <div>
-              <span className="text-sm font-bold tracking-tight text-white block leading-tight">ArecaHarvest</span>
-              <span className="text-[10px] text-primary-400 font-medium tracking-wide">ENTERPRISE AGRI</span>
+              <span className="text-base font-extrabold tracking-tight text-white block leading-tight">
+                ArecaHarvest
+              </span>
+              <span className="text-[10px] text-emerald-400 font-bold tracking-wider uppercase font-mono">
+                Enterprise Agri
+              </span>
             </div>
           </div>
         ) : (
-          <div className="flex h-9 w-9 mx-auto items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 shadow-glow">
+          <div className="flex h-10 w-10 mx-auto items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 via-primary-600 to-primary-700 shadow-lg shadow-emerald-900/30 ring-1 ring-white/20">
             <Leaf className="h-5 w-5 text-white" />
           </div>
         )}
@@ -77,7 +81,7 @@ export default function Sidebar({ collapsed, onToggle, onClose }: Props) {
         {!collapsed && !onClose && (
           <button
             onClick={onToggle}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/60 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors"
             title="Collapse Sidebar"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -88,7 +92,7 @@ export default function Sidebar({ collapsed, onToggle, onClose }: Props) {
         {onClose && (
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/60 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors"
             title="Close Drawer"
           >
             <X className="h-5 w-5" />
@@ -96,12 +100,25 @@ export default function Sidebar({ collapsed, onToggle, onClose }: Props) {
         )}
       </div>
 
+      {/* If collapsed on desktop, show mini expand button at top */}
+      {collapsed && !onClose && (
+        <div className="px-2 pt-2 pb-1 shrink-0 flex justify-center">
+          <button
+            onClick={onToggle}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors"
+            title="Expand Sidebar"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       {/* Navigation List */}
-      <nav className="flex-1 overflow-y-auto py-3 space-y-4 px-2.5">
+      <nav className="flex-1 overflow-y-auto py-3 space-y-4 px-3 custom-scrollbar">
         {nav.map(section => (
           <div key={section.section}>
             {!collapsed && (
-              <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400/80">
+              <p className="px-3 mb-1.5 text-[10px] font-extrabold uppercase tracking-widest text-slate-400/90 font-mono">
                 {section.section}
               </p>
             )}
@@ -113,10 +130,10 @@ export default function Sidebar({ collapsed, onToggle, onClose }: Props) {
                     end={item.to === '/'}
                     onClick={() => onClose?.()}
                     className={({ isActive }) => cn(
-                      'group flex items-center gap-3 rounded-xl px-3 py-2 text-xs sm:text-sm font-medium transition-all duration-150',
+                      'group flex items-center gap-3 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-semibold transition-all duration-150 relative',
                       isActive
-                        ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-sm'
-                        : 'text-gray-300 hover:bg-gray-800/70 hover:text-white',
+                        ? 'bg-gradient-to-r from-emerald-600 to-primary-700 text-white shadow-md shadow-emerald-950/40'
+                        : 'text-slate-300 hover:bg-slate-800/70 hover:text-white',
                       collapsed && 'justify-center px-0 py-2.5',
                     )}
                     title={collapsed ? item.label : undefined}
@@ -134,15 +151,20 @@ export default function Sidebar({ collapsed, onToggle, onClose }: Props) {
         ))}
       </nav>
 
-      {/* User Footer */}
-      <div className="border-t border-gray-800/80 p-3 bg-gray-950/60">
+      {/* User & Status Footer */}
+      <div className="border-t border-slate-800/80 p-3 bg-slate-950/80 shrink-0">
         {!collapsed && (
-          <div className="px-2.5 py-1.5 mb-1.5">
-            <p className="text-xs font-semibold text-white truncate">{user?.fullName || 'User'}</p>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <p className="text-[10px] text-gray-400 uppercase tracking-wider font-mono">
+          <div className="px-2.5 py-1.5 mb-2 rounded-xl bg-slate-900/60 border border-slate-800/60">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold text-white truncate">{user?.fullName || 'User'}</p>
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 font-mono font-bold border border-emerald-800/50">
                 {user?.roles?.[0]?.replace('ROLE_', '') || 'STAFF'}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 mt-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <p className="text-[10px] text-emerald-400 font-mono tracking-wide">
+                SYSTEM ONLINE • H2 DEMO
               </p>
             </div>
           </div>
@@ -150,7 +172,7 @@ export default function Sidebar({ collapsed, onToggle, onClose }: Props) {
         <button
           onClick={logout}
           className={cn(
-            'flex w-full items-center gap-3 rounded-xl px-3 py-2 text-xs sm:text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors',
+            'flex w-full items-center gap-3 rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors',
             collapsed && 'justify-center px-0',
           )}
           title="Sign Out"
@@ -162,4 +184,3 @@ export default function Sidebar({ collapsed, onToggle, onClose }: Props) {
     </aside>
   )
 }
-

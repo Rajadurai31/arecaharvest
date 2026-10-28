@@ -20,9 +20,9 @@ public interface BuyerPaymentRepository extends JpaRepository<BuyerPayment, Long
      */
     @Query("""
         SELECT COALESCE(SUM(CASE
-            WHEN bp.transactionType = 'SALE'    THEN bp.amount
-            WHEN bp.transactionType = 'PAYMENT' THEN -bp.amount
-            WHEN bp.transactionType = 'ADJUSTMENT' THEN bp.amount * bp.adjustmentSign
+            WHEN CAST(bp.transactionType AS string) = 'SALE'       THEN bp.amount
+            WHEN CAST(bp.transactionType AS string) = 'PAYMENT'    THEN -bp.amount
+            WHEN CAST(bp.transactionType AS string) = 'ADJUSTMENT' THEN bp.amount * bp.adjustmentSign
             ELSE 0
         END), 0)
         FROM BuyerPayment bp WHERE bp.buyer.id = :buyerId

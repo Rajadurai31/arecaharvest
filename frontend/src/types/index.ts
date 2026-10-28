@@ -331,7 +331,7 @@ export interface Schedule {
   id: number
   scheduleDate: string
   fieldId: number
-  field?: { id: number; fieldName: string }
+  field?: { id: number; fieldName: string; village?: string }
   contractId?: number
   supervisorId?: number
   plannedStartTime?: string
@@ -340,4 +340,5 @@ export interface Schedule {
   expectedWorkerCount?: number
   notes?: string
   status: string
+  workers?: { id: number; name: string }[]
 }
